@@ -84,7 +84,7 @@ def convert_mth_strings ( mth_string ):
 #### VARIABLES 1.0
 
 entity_id = "NFTRA3_WAHNFT_gov"
-url = "https://data.gov.uk/dataset/financial-transactions-data-weston-area-health-nhs-trust"
+url = "http://www.waht.nhs.uk/en-GB/About-The-Trust/Freedom-of-Information/What-we-spend-and-how-we-spend-it/"
 errors = 0
 data = []
 
@@ -96,20 +96,21 @@ soup = BeautifulSoup(html, 'lxml')
 
 #### SCRAPE DATA
 
-blocks = soup.find_all('div', 'dropdown')
+blocks = soup.find('div', id='ctl00_midColClassDiv').find_all('a')
 for block in blocks:
-    file_url = ''
-    try:
-        file_url = block.find('ul', 'dropdown-menu').find_all('li')[1].find('a')['href']
-    except:
-        pass
-    if '.csv' in file_url or '.xls' in file_url:
-        url = file_url
-        title = block.find_previous('div', 'dataset-resource-text').text.strip()
+    if '.csv' in block['href'] or '.xls' in block['href'] or '.xlsx' in block['href']:
+        link = 'http://www.waht.nhs.uk'+block['href']
+        title = block.text.strip()
         csvMth = title[:3]
-        csvYr = title[-4:]
+        csvYr = link.split('/')[-2]
+        if '20' not in csvYr:
+            csvYr = link.split('.')[-2][-4:]
+        if '0(3)' in csvYr:
+            csvYr = '2014'
+        if '-' in title:
+            csvMth = 'Q0'
         csvMth = convert_mth_strings(csvMth.upper())
-        data.append([csvYr, csvMth, url])
+        data.append([csvYr, csvMth, link])
 
 
 #### STORE DATA 1.0
